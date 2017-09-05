@@ -57,8 +57,8 @@ func (s *SurroundingsEnv) observe() anyvec.Vector {
 //
 // Each meta-episode consists of NumRuns episodes of Env.
 // The action space is the same, but the observations are
-// augmented (at the end) with the previous action and
-// reward (in that order).
+// augmented (at the end) with the previous action, the
+// reward, and the done boolean (in that order).
 //
 // For the first observation, the action and reward values
 // are both 0.
@@ -92,7 +92,9 @@ func (m *MetaEnv) Step(act anyvec.Vector) (obs anyvec.Vector, rew float64,
 	if err != nil {
 		return
 	}
+	rewDoneVec := []float64{rew, 0}
 	if done {
+		rewDoneVec[1] = 1
 		m.runsRemaining--
 		done = m.runsRemaining == 0
 		if !done {
@@ -103,6 +105,6 @@ func (m *MetaEnv) Step(act anyvec.Vector) (obs anyvec.Vector, rew float64,
 		}
 	}
 	c := obs.Creator()
-	obs = c.Concat(obs, act, c.MakeVectorData(c.MakeNumericList([]float64{rew})))
+	obs = c.Concat(obs, act, c.MakeVectorData(c.MakeNumericList(rewDoneVec)))
 	return
 }
