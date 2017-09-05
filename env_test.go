@@ -79,8 +79,8 @@ func TestEnv(t *testing.T) {
 	if !done {
 		t.Error("expected done signal")
 	}
-	if reward != 1 {
-		t.Error("expected reward of 1")
+	if reward != 0 {
+		t.Error("expected reward of 0")
 	}
 	doneRes := append([]float64{}, expectedInitial...)
 	doneRes[8*5] = 0
@@ -103,7 +103,7 @@ func testNotDoneStepResult(t *testing.T, reward float64, done bool, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if reward != 0 {
+	if reward != -1 {
 		t.Error("unexpected reward")
 	}
 	if done {

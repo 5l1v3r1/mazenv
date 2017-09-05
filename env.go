@@ -34,8 +34,9 @@ const (
 // position) followed by a one-hot vector of four
 // components: space, wall, start, end.
 //
-// Rewards are 0 until the maze is solved, at which point
-// the episode ends and the reward is 1.
+// Rewards are -1 until the maze is solved, at which point
+// the episode ends and the reward is 0.
+// This way, shorter solutions are preferred.
 type Env struct {
 	// Creator is used to create observation vectors.
 	Creator anyvec.Creator
@@ -75,8 +76,10 @@ func (e *Env) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
 		e.Position = newPos
 	}
 	if e.Position == e.Maze.End {
-		reward = 1
+		reward = 0
 		done = true
+	} else {
+		reward = -1
 	}
 	obs = e.observation()
 	return
