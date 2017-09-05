@@ -1,27 +1,39 @@
-package main
+package mazenv
 
 import (
 	"flag"
 	"math/rand"
 
 	"github.com/unixpickle/essentials"
-	"github.com/unixpickle/mazenv"
 )
 
-type PrimAlgorithm struct{}
+// A Generator generates mazes.
+type Generator interface {
+	Generate(width, height int) (*Maze, error)
+}
 
-func (p *PrimAlgorithm) Description() string {
+// PrimGenerator is a Generator that uses a randomized
+// variant of Prim's algorithm.
+type PrimGenerator struct{}
+
+// Description returns a short description of what the
+// algorithm does.
+func (p *PrimGenerator) Description() string {
 	return "randomized variant of Prim's algorithm"
 }
 
-func (p *PrimAlgorithm) AddFlags(f *flag.FlagSet) {
+// AddFlags adds the generator's options as flags.
+//
+// Currently, this is a no-op.
+func (p *PrimGenerator) AddFlags(f *flag.FlagSet) {
 }
 
-func (p *PrimAlgorithm) Generate(rows, cols int) (*mazenv.Maze, error) {
-	maze := &mazenv.Maze{
+// Generate generates a random maze.
+func (p *PrimGenerator) Generate(rows, cols int) (*Maze, error) {
+	maze := &Maze{
 		Rows: rows,
 		Cols: cols,
-		Start: mazenv.Position{
+		Start: Position{
 			Row: rand.Intn(rows),
 			Col: rand.Intn(cols),
 		},
@@ -34,7 +46,7 @@ func (p *PrimAlgorithm) Generate(rows, cols int) (*mazenv.Maze, error) {
 	maze.Walls[maze.CellIndex(maze.Start)] = false
 
 	edges := neighbors(maze, maze.Start)
-	visited := map[mazenv.Position]bool{maze.Start: true}
+	visited := map[Position]bool{maze.Start: true}
 	for _, p := range edges {
 		visited[p] = true
 	}
@@ -54,7 +66,7 @@ func (p *PrimAlgorithm) Generate(rows, cols int) (*mazenv.Maze, error) {
 		}
 	}
 
-	var possibleEnds []mazenv.Position
+	var possibleEnds []Position
 	for _, pos := range maze.Positions() {
 		if !maze.Wall(pos) && pos != maze.Start {
 			possibleEnds = append(possibleEnds, pos)

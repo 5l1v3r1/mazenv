@@ -28,14 +28,14 @@ func (c *CommonFlags) AddFlags(f *flag.FlagSet) {
 	f.BoolVar(&c.Border, "border", false, "add a border of walls around the maze")
 }
 
-type Algorithm interface {
+type Generator interface {
+	mazenv.Generator
 	Description() string
 	AddFlags(f *flag.FlagSet)
-	Generate(width, height int) (*mazenv.Maze, error)
 }
 
-var Algorithms = map[string]Algorithm{
-	"prim": &PrimAlgorithm{},
+var Generators = map[string]Generator{
+	"prim": &mazenv.PrimGenerator{},
 }
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		dieUsage()
 	}
 	algoName, args := os.Args[1], os.Args[2:]
-	if algo, ok := Algorithms[algoName]; ok {
+	if algo, ok := Generators[algoName]; ok {
 		fs := flag.NewFlagSet(algoName, flag.ExitOnError)
 		common := CommonFlags{}
 		common.AddFlags(fs)
@@ -75,21 +75,21 @@ func main() {
 
 func dieUsage() {
 	lines := []string{
-		"Usage: generate-maze <algorithm> [flags | -help]",
+		"Usage: generate-maze <generator> [flags | -help]",
 		"",
-		"Available algorithms:",
+		"Available generators:",
 		"",
 	}
 
 	var longestName int
 	var names []string
-	for name := range Algorithms {
+	for name := range Generators {
 		names = append(names, name)
 		longestName = essentials.MaxInt(longestName, len(name))
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		desc := Algorithms[name].Description()
+		desc := Generators[name].Description()
 		for len(name) < longestName {
 			name += " "
 		}
