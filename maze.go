@@ -71,6 +71,12 @@ func ParseMaze(s string) (maze *Maze, err error) {
 			}
 		}
 	}
+	if !seenStart {
+		return nil, errors.New("missing start")
+	}
+	if !seenEnd {
+		return nil, errors.New("missing end")
+	}
 	return
 }
 

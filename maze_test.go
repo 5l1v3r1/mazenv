@@ -9,6 +9,13 @@ func TestMazeString(t *testing.T) {
 	if actual != expected {
 		t.Errorf("expected %#v but got %#v", expected, actual)
 	}
+
+	shouldFail := []string{"xw\nA", "xw\nxA", "xw\n..", "Aw\n..", "Aw\nxA"}
+	for _, s := range shouldFail {
+		if _, err := ParseMaze(s); err == nil {
+			t.Errorf("expected failure for %#v", s)
+		}
+	}
 }
 
 func TestMazeParse(t *testing.T) {
