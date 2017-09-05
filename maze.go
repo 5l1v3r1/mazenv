@@ -1,7 +1,10 @@
 package mazenv
 
 import (
+	"errors"
 	"strings"
+
+	"github.com/unixpickle/essentials"
 )
 
 // Position represents a place on a Maze.
@@ -28,6 +31,47 @@ type Maze struct {
 	// There should be no wall where the start and end
 	// positions are.
 	Walls []bool
+}
+
+// ParseMaze parses a maze from a string.
+// See String for details on the format.
+func (m *Maze) ParseMaze(s string) (maze *Maze, err error) {
+	defer essentials.AddCtxTo("parse maze", &err)
+	lines := strings.Split(s, "\n")
+	maze = &Maze{}
+	if len(lines) == 0 {
+		return
+	}
+	maze.Rows = len(lines)
+	maze.Cols = len([]rune(lines[0]))
+	maze.Walls = make([]bool, maze.Rows*maze.Cols)
+	var seenStart, seenEnd bool
+	for row, line := range lines {
+		if len([]rune(line)) != maze.Cols {
+			return nil, errors.New("inconsistent number of columns")
+		}
+		for col, ch := range line {
+			pos := Position{row, col}
+			switch ch {
+			case '.':
+			case 'w':
+				maze.Walls[maze.CellIndex(pos)] = true
+			case 'A':
+				maze.Start = pos
+				if seenStart {
+					return nil, errors.New("multiple starts")
+				}
+				seenStart = true
+			case 'x':
+				maze.End = pos
+				if seenEnd {
+					return nil, errors.New("multiple ends")
+				}
+				seenEnd = true
+			}
+		}
+	}
+	return
 }
 
 // InBounds checks if the position is within the grid.
@@ -94,8 +138,10 @@ func (m *Maze) Bordered() *Maze {
 }
 
 // String produces an ASCII representation of the grid.
+//
 // Every wall is represented as a 'w', every space as a
 // '.', the start as 'A', and the end as 'x'.
+// Each row is separated by a newline.
 func (m *Maze) String() string {
 	rows := make([]string, m.Rows)
 	for row := 0; row < m.Rows; row++ {
