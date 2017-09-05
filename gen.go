@@ -9,7 +9,7 @@ import (
 
 // A Generator generates mazes.
 type Generator interface {
-	Generate(width, height int) (*Maze, error)
+	Generate(rows, cols int) (*Maze, error)
 }
 
 // PrimGenerator is a Generator that uses a randomized
