@@ -37,7 +37,7 @@ type Maze struct {
 // See String for details on the format.
 func ParseMaze(s string) (maze *Maze, err error) {
 	defer essentials.AddCtxTo("parse maze", &err)
-	lines := strings.Split(s, "\n")
+	lines := strings.Split(strings.TrimSpace(s), "\n")
 	maze = &Maze{}
 	if len(lines) == 0 {
 		return
