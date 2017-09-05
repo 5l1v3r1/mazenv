@@ -35,7 +35,7 @@ type Maze struct {
 
 // ParseMaze parses a maze from a string.
 // See String for details on the format.
-func (m *Maze) ParseMaze(s string) (maze *Maze, err error) {
+func ParseMaze(s string) (maze *Maze, err error) {
 	defer essentials.AddCtxTo("parse maze", &err)
 	lines := strings.Split(s, "\n")
 	maze = &Maze{}
