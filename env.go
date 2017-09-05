@@ -3,6 +3,7 @@ package mazenv
 import (
 	"errors"
 
+	"github.com/unixpickle/anyrl"
 	"github.com/unixpickle/anyvec"
 )
 
@@ -23,10 +24,35 @@ const (
 	CellEnd
 )
 
-// Env is a barebones environment for a single maze.
+// Env is a generic maze environment.
 //
 // Actions are one-hot vectors with five possibilities.
 // See ActionNop, ActionUp, etc.
+//
+// Observations and rewards are dependent on context.
+// See, for example, NewEnv.
+type Env interface {
+	anyrl.Env
+
+	// Creator is what the environment uses to create
+	// observations.
+	Creator() anyvec.Creator
+
+	// Maze returns the environment's map.
+	Maze() *Maze
+
+	// Position returns the player's current position.
+	Position() Position
+}
+
+// rawEnv is a barebones environment for a maze.
+type rawEnv struct {
+	creator  anyvec.Creator
+	maze     *Maze
+	position Position
+}
+
+// NewEnv creates an Env for the maze.
 //
 // Observations are row-major representations of the
 // maze grid.
@@ -37,31 +63,39 @@ const (
 // Rewards are -1 until the maze is solved, at which point
 // the episode ends and the reward is 0.
 // This way, shorter solutions are preferred.
-type Env struct {
-	// Creator is used to create observation vectors.
-	Creator anyvec.Creator
+func NewEnv(cr anyvec.Creator, maze *Maze) Env {
+	return &rawEnv{creator: cr, maze: maze}
+}
 
-	// Maze is the map to use for the environment.
-	Maze *Maze
+// Creator returns the creator for observations.
+func (r *rawEnv) Creator() anyvec.Creator {
+	return r.creator
+}
 
-	// Position is the current player position.
-	Position Position
+// Maze returns the maze.
+func (r *rawEnv) Maze() *Maze {
+	return r.maze
+}
+
+// Position returns the current position.
+func (r *rawEnv) Position() Position {
+	return r.position
 }
 
 // Reset resets the player's position to the start.
-func (e *Env) Reset() (obs anyvec.Vector, err error) {
-	e.Position = e.Maze.Start
-	return e.observation(), nil
+func (r *rawEnv) Reset() (obs anyvec.Vector, err error) {
+	r.position = r.maze.Start
+	return r.observation(), nil
 }
 
 // Step takes a step in the environment.
-func (e *Env) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
+func (r *rawEnv) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
 	done bool, err error) {
-	if e.Position == e.Maze.End {
+	if r.position == r.maze.End {
 		err = errors.New("step: maze is already solved")
 		return
 	}
-	newPos := e.Position
+	newPos := r.position
 	switch anyvec.MaxIndex(action) {
 	case ActionUp:
 		newPos.Row--
@@ -72,21 +106,21 @@ func (e *Env) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
 	case ActionLeft:
 		newPos.Col--
 	}
-	if !e.Maze.Wall(newPos) {
-		e.Position = newPos
+	if !r.maze.Wall(newPos) {
+		r.position = newPos
 	}
-	if e.Position == e.Maze.End {
+	if r.position == r.maze.End {
 		reward = 0
 		done = true
 	} else {
 		reward = -1
 	}
-	obs = e.observation()
+	obs = r.observation()
 	return
 }
 
-func (e *Env) observation() anyvec.Vector {
-	grid := oneHotGrid(e.Maze, e.Position, 0, 0, e.Maze.Rows, e.Maze.Cols)
-	vecData := e.Creator.MakeNumericList(grid)
-	return e.Creator.MakeVectorData(vecData)
+func (r *rawEnv) observation() anyvec.Vector {
+	grid := oneHotGrid(r.maze, r.position, 0, 0, r.maze.Rows, r.maze.Cols)
+	vecData := r.creator.MakeNumericList(grid)
+	return r.creator.MakeVectorData(vecData)
 }

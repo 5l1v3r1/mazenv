@@ -14,7 +14,7 @@ func TestEnv(t *testing.T) {
 	}
 
 	cr := anyvec64.DefaultCreator{}
-	env := &Env{Creator: cr, Maze: maze}
+	env := NewEnv(cr, maze)
 
 	obs, err := env.Reset()
 	if err != nil {
