@@ -1,9 +1,5 @@
 package mazenv
 
-import (
-	"github.com/unixpickle/anyvec"
-)
-
 // SurroundingsEnv restricts the observations of an Env.
 // In particular, it shows the agent an NxN rectangle with
 // the agent at the center, where N is 2*Horizon+1.
@@ -21,7 +17,7 @@ type SurroundingsEnv struct {
 }
 
 // Reset resets the environment.
-func (s *SurroundingsEnv) Reset() (obs anyvec.Vector, err error) {
+func (s *SurroundingsEnv) Reset() (obs []float64, err error) {
 	_, err = s.Env.Reset()
 	if err != nil {
 		return
@@ -31,7 +27,7 @@ func (s *SurroundingsEnv) Reset() (obs anyvec.Vector, err error) {
 }
 
 // Step takes a step in the environment.
-func (s *SurroundingsEnv) Step(act anyvec.Vector) (obs anyvec.Vector, rew float64,
+func (s *SurroundingsEnv) Step(act []float64) (obs []float64, rew float64,
 	done bool, err error) {
 	_, rew, done, err = s.Env.Step(act)
 	if err != nil {
@@ -41,12 +37,10 @@ func (s *SurroundingsEnv) Step(act anyvec.Vector) (obs anyvec.Vector, rew float6
 	return
 }
 
-func (s *SurroundingsEnv) observe() anyvec.Vector {
+func (s *SurroundingsEnv) observe() []float64 {
 	p := s.Position()
 	startRow := p.Row - s.Horizon
 	startCol := p.Col - s.Horizon
 	size := 2*s.Horizon + 1
-	grid := oneHotGrid(s.Maze(), p, startRow, startCol, size, size)
-	vecData := s.Creator().MakeNumericList(grid)
-	return s.Creator().MakeVectorData(vecData)
+	return oneHotGrid(s.Maze(), p, startRow, startCol, size, size)
 }

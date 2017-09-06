@@ -2,8 +2,6 @@ package mazenv
 
 import (
 	"testing"
-
-	"github.com/unixpickle/anyvec/anyvec64"
 )
 
 func TestSurroundingsEnv(t *testing.T) {
@@ -12,8 +10,7 @@ func TestSurroundingsEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cr := anyvec64.DefaultCreator{}
-	env := &SurroundingsEnv{Env: NewEnv(cr, maze), Horizon: 1}
+	env := &SurroundingsEnv{Env: NewEnv(maze), Horizon: 1}
 
 	obs, err := env.Reset()
 	if err != nil {
@@ -36,15 +33,15 @@ func TestSurroundingsEnv(t *testing.T) {
 
 	lastObs := obs
 	for _, act := range []int{ActionUp, ActionUp, ActionRight, ActionRight} {
-		obs, reward, done, err := env.Step(oneHotAction(cr, act))
+		obs, reward, done, err := env.Step(oneHotAction(act))
 		testNotDoneStepResult(t, reward, done, err)
-		if vecsClose(lastObs, obs) {
+		if obsEqual(lastObs, obs) {
 			t.Errorf("observation didn't change after %v", act)
 		}
 		lastObs = obs
 	}
 
-	obs, reward, done, err := env.Step(oneHotAction(cr, ActionDown))
+	obs, reward, done, err := env.Step(oneHotAction(ActionDown))
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,7 +65,7 @@ func TestSurroundingsEnv(t *testing.T) {
 		0, 0, 1, 0, 0,
 	})
 
-	_, _, _, err = env.Step(oneHotAction(cr, ActionUp))
+	_, _, _, err = env.Step(oneHotAction(ActionUp))
 	if err == nil {
 		t.Error("expected error from step after end of episode")
 	}

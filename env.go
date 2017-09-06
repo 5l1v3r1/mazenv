@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/unixpickle/anyrl"
-	"github.com/unixpickle/anyvec"
 )
 
 // Indices in one-hot action vectors.
@@ -34,10 +33,6 @@ const (
 type Env interface {
 	anyrl.Env
 
-	// Creator is what the environment uses to create
-	// observations.
-	Creator() anyvec.Creator
-
 	// Maze returns the environment's map.
 	Maze() *Maze
 
@@ -47,7 +42,6 @@ type Env interface {
 
 // rawEnv is a barebones environment for a maze.
 type rawEnv struct {
-	creator  anyvec.Creator
 	maze     *Maze
 	position Position
 }
@@ -63,13 +57,8 @@ type rawEnv struct {
 // Rewards are -1 until the maze is solved, at which point
 // the episode ends and the reward is 0.
 // This way, shorter solutions are preferred.
-func NewEnv(cr anyvec.Creator, maze *Maze) Env {
-	return &rawEnv{creator: cr, maze: maze}
-}
-
-// Creator returns the creator for observations.
-func (r *rawEnv) Creator() anyvec.Creator {
-	return r.creator
+func NewEnv(maze *Maze) Env {
+	return &rawEnv{maze: maze}
 }
 
 // Maze returns the maze.
@@ -83,20 +72,26 @@ func (r *rawEnv) Position() Position {
 }
 
 // Reset resets the player's position to the start.
-func (r *rawEnv) Reset() (obs anyvec.Vector, err error) {
+func (r *rawEnv) Reset() (obs []float64, err error) {
 	r.position = r.maze.Start
 	return r.observation(), nil
 }
 
 // Step takes a step in the environment.
-func (r *rawEnv) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
+func (r *rawEnv) Step(action []float64) (obs []float64, reward float64,
 	done bool, err error) {
 	if r.position == r.maze.End {
 		err = errors.New("step: maze is already solved")
 		return
 	}
 	newPos := r.position
-	switch anyvec.MaxIndex(action) {
+	var actionIdx int
+	for i, x := range action {
+		if x != 0 {
+			actionIdx = i
+		}
+	}
+	switch actionIdx {
 	case ActionUp:
 		newPos.Row--
 	case ActionRight:
@@ -119,8 +114,6 @@ func (r *rawEnv) Step(action anyvec.Vector) (obs anyvec.Vector, reward float64,
 	return
 }
 
-func (r *rawEnv) observation() anyvec.Vector {
-	grid := oneHotGrid(r.maze, r.position, 0, 0, r.maze.Rows, r.maze.Cols)
-	vecData := r.creator.MakeNumericList(grid)
-	return r.creator.MakeVectorData(vecData)
+func (r *rawEnv) observation() []float64 {
+	return oneHotGrid(r.maze, r.position, 0, 0, r.maze.Rows, r.maze.Cols)
 }
