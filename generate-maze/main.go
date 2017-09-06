@@ -35,7 +35,8 @@ type Generator interface {
 }
 
 var Generators = map[string]Generator{
-	"prim": &mazenv.PrimGenerator{},
+	"prim":   &mazenv.PrimGenerator{},
+	"island": &mazenv.IslandGenerator{},
 }
 
 func main() {

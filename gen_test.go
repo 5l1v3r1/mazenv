@@ -4,14 +4,19 @@ import "testing"
 
 func TestGenerators(t *testing.T) {
 	gens := map[string]Generator{
-		"PrimGenerator": &PrimGenerator{},
+		"PrimGenerator":   &PrimGenerator{},
+		"IslandGenerator": &IslandGenerator{},
 	}
 	for name, gen := range gens {
 		t.Run(name, func(t *testing.T) {
 			var seen []*Maze
 			for i := 0; i < 5; i++ {
-				m, err := gen.Generate(20, 15)
-				if m.Rows != 20 || m.Cols != 15 || len(m.String()) != 20*16-1 {
+				m, err := gen.Generate(21, 15)
+				if err != nil {
+					t.Error(err)
+					continue
+				}
+				if m.Rows != 21 || m.Cols != 15 || len(m.String()) != 21*16-1 {
 					t.Error("invalid dimensions")
 				}
 				if m.Start == m.End {

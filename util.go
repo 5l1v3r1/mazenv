@@ -1,5 +1,7 @@
 package mazenv
 
+import "math/rand"
+
 func neighbors(m *Maze, p Position) []Position {
 	var res []Position
 	for off := -1; off <= 1; off += 2 {
@@ -55,4 +57,27 @@ func oneHot(num, val int) []float64 {
 	res := make([]float64, num)
 	res[val] = 1
 	return res
+}
+
+func shuffledSpaces(m *Maze, exclude ...Position) []Position {
+	var options []Position
+
+PosLoop:
+	for _, p := range m.Positions() {
+		if !m.Wall(p) {
+			for _, x := range exclude {
+				if x == p {
+					continue PosLoop
+				}
+			}
+			options = append(options, p)
+		}
+	}
+
+	for i := 0; i < len(options); i++ {
+		j := i + rand.Intn(len(options)-i)
+		options[i], options[j] = options[j], options[i]
+	}
+
+	return options
 }
